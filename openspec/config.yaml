@@ -1,0 +1,50 @@
+schema: spec-driven
+
+context: |
+  Project: svoi-web - frontend для продукта "Свои" (инструмент проверки спроса на новые услуги для микробизнеса, стартовый сегмент - бьюти-мастера в Казахстане).
+  Currently in demo phase (concierge MVP approach), will evolve into production product.
+  
+  Tech stack:
+  - Next.js 16 (App Router, src-dir, client-only for demo phase)
+  - TypeScript strict mode
+  - shadcn/ui components in src/shared/ui/
+  - Tailwind CSS v4
+  - framer-motion for animations
+  - Manrope font via next/font
+  
+  Architecture: Feature-Sliced Design (FSD - fsd.how)
+  - src/app/ - Next.js routing only (layout, page, styles, route handlers)
+  - src/pages/ - FSD pages layer (thin compositions)
+  - src/features/ - product features (client-flow, master-view)
+  - src/entities/ - business entities (master)
+  - src/shared/ - reusable ui/lib/config/assets
+  - Each FSD slice exposes public API via index.ts
+  - No cross-imports between features
+  
+  Testing:
+  - Vitest + React Testing Library for unit/integration
+  - Playwright for e2e
+  - Tests live in tests/ directory at repo root, mirroring src/ structure
+  - TDD cycle: red (failing test) -> green (minimal code) -> refactor
+  - Test behavior, not implementation details (use RTL role/label queries)
+  
+  Development process:
+  - OpenSpec drives feature development from F3 onwards (F0-F2 are bootstrap)
+  - Cycle: propose -> review spec -> write failing tests from spec -> minimal code (green) -> refactor -> archive
+  - One feature = one openspec change
+  
+  Conventions:
+  - Conventional commits (feat:, chore:, docs:, test:, refactor:, style:, fix:)
+  - Russian product copy in UI (target audience is Russian-speaking masters in KZ)
+  - English in code, comments, commits, specs
+  - Color palette "Original": #FBF7F2 background, #C97B5A terracotta accent, #2D2A26 text
+
+rules:
+  proposal:
+    - Keep proposals focused on a single feature from the development plan
+    - Reference the feature ID (F3-F19) from development-plan
+    - Include acceptance criteria that can be translated directly into tests
+  tasks:
+    - Break tasks into chunks aligned with the TDD cycle
+    - Include explicit "write failing tests" task before implementation task
+    - Mark testing tasks clearly so they happen first

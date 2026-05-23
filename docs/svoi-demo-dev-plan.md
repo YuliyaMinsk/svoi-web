@@ -11,7 +11,7 @@
 
 | # | Фича | Что делает | Зависит от | Почему отдельная |
 |---|------|------------|------------|------------------|
-| F0 | **project/init** | `create-next-app` с TypeScript + Tailwind + `--src-dir` (имя проекта svoi-web), создание FSD-слоев внутри src/ (`src/{pages,features,entities,shared}/` + `src/app/styles/`), перенос `globals.css` в `src/app/styles/`, правка импорта в `layout.tsx`. `src/app/` остается роутером Next.js. `tsconfig.json` paths `@/* → ./src/*` уже настроен create-next-app. `.gitignore`, первый коммит. | — | Разовая стартовая настройка. Не должна смешиваться с продуктовыми фичами — если что-то здесь сломается, сломается все. |
+| F0 | **project/init** | `create-next-app@latest` (Next.js 16: App Router и Turbopack по дефолту, ESLint Flat Config через `eslint.config.mjs`, AGENTS.md создаётся автоматически). TypeScript + Tailwind + `src/`-директория. Создание FSD-слоев внутри src/ (`src/{pages,features,entities,shared}/` + `src/app/styles/`), перенос `globals.css` в `src/app/styles/`, правка импорта в `layout.tsx`. `src/app/` остается роутером Next.js. `tsconfig.json` paths `@/* → ./src/*` уже настроен create-next-app. `.gitignore`, первый коммит. | — | Разовая стартовая настройка. Не должна смешиваться с продуктовыми фичами — если что-то здесь сломается, сломается все. |
 | F1 | **shared/ui (shadcn)** | `npx shadcn@latest init`, настройка `components.json` с алиасами на `@/shared/ui`, `@/shared/lib/cn`. Установка компонентов `button` и `card`. | F0 | shadcn заводит свою инфраструктуру (`components.json`, `lib/utils`) — настроить до того как писать UI. Алиасы под FSD задаются здесь. |
 | F2 | **shared/styles** | Подключение Manrope через `next/font/google`, CSS-переменные палитры Original в `globals.css` (`--background`, `--primary`, `--primary-hover`, `--radius`, `--shadow-card`), кастомизация `shared/ui/button.tsx` под палитру. | F1 | Дизайн-токены должны быть готовы до первого экрана. Кастомизация Button — отдельная задача от установки shadcn. |
 | F3 | **entities/master/types + shared/config** | Все TS типы в `entities/master/model/types.ts` (`MasterConfig`, `ServiceConfig`, `ContactsConfig`, `BotMessage`, `Step`), public API через `index.ts`. Константа `MASTER` в `shared/config/master-config.ts`. Утилиты `deeplinks.ts` и `dev-log.ts` в `shared/lib/`. | F0 (типы независимы от UI) | Фундамент. Контракт данных фиксируем рано — спека и тесты на форму данных без поведения. |
@@ -88,17 +88,25 @@ F19
 
 ### F0. project/init
 
-- [ ] `npx create-next-app@latest svoi-web --typescript --tailwind --app --src-dir --eslint --import-alias "@/*"` (в Next.js 16+ AGENTS.md создается автоматически)
+- [ ] Запустить интерактивный промпт: `npx create-next-app@latest svoi-web` и выбрать «recommended defaults» (TypeScript + ESLint + Tailwind + App Router + AGENTS.md), либо `--yes` для пропуска. **В Next.js 16:** App Router и Turbopack включены по умолчанию (флаги `--app`, `--turbopack`, `--eslint` больше не нужны), AGENTS.md создаётся автоматически, конфиг ESLint — `eslint.config.mjs` (Flat Config), `next build` сам линт не запускает
+- [ ] Подтвердить, что `src/`-директория выбрана в промпте (пункт «Would you like your code inside a `src/` directory?»)
 - [ ] Создать FSD-слои: `mkdir -p src/{pages,features,entities,shared/{ui,lib,config,assets}}`
 - [ ] Перенести стили: `mkdir -p src/app/styles && mv src/app/globals.css src/app/styles/globals.css`
 - [ ] Обновить импорт в `src/app/layout.tsx`: `import "./globals.css"` → `import "@/app/styles/globals.css"`
 - [ ] Добавить README.md в каждый пустой FSD-слой (pages, features, entities, shared) с кратким описанием назначения - чтобы git зафиксировал папки и было понятно при онбординге
-- [ ] Проверить `tsconfig.json` - alias `@/*` указывает на `./src/*` (create-next-app настраивает это сам, но убедиться)
+- [ ] Проверить `tsconfig.json` - alias `@/*` указывает на `./src/*`; `include` содержит `.next/dev/types/**/*.ts` (в Next.js 16 `next dev` пишет в `.next/dev`, `next build` — в `.next`)
+- [ ] Проверить `package.json`: `"dev": "next dev"`, `"build": "next build"`, `"lint": "eslint"` (без `next lint` — он удалён в v16)
 - [ ] Проверить `.gitignore` (next/node/build/.env)
 - [ ] Первый коммит: `chore: initial project setup with FSD structure`
 - [ ] **Проверка:** `npm run dev` запускает дефолтную страницу Next.js на http://localhost:3000 без ошибок
 
 **Заметка об архитектурном решении:** `src/app/` остается папкой роутинга Next.js (layout.tsx, page.tsx, маршруты, styles/). Бизнес-логика и UI экранов живут в FSD-слоях `src/pages/`, `src/features/`, `src/entities/`, `src/shared/`. Заглушка `pages/` в корне не нужна - Next.js 13+ корректно работает с `src/app/` без этого.
+
+**Заметка про Next.js 16 (актуально для последующих фич):**
+- **Async Request APIs:** `params` и `searchParams` в `page.tsx`/`layout.tsx` теперь `Promise`. В этом плане динамических роутов нет (`/` и `/master` — статика), но если добавится `[id]` — принимать `{ params: Promise<{ id: string }> }` и делать `await params`. Helper `PageProps<'/route'>` генерируется через `npx next typegen`.
+- **next/image defaults:** `images.qualities` по умолчанию `[75]` — для значений вне этого набора настраивать в `next.config.ts`. Локальные src без query-параметров работают как раньше (нужны они — `images.localPatterns`).
+- **React 19.2 + React Compiler:** компилятор стабилен, но **не включаем** для demo (увеличивает время билда через Babel). `<ViewTransition>` из React 19.2 не используем — остаёмся на framer-motion.
+- **`next build` output:** убраны метрики `size` и `First Load JS` — для оценки бандла использовать Chrome DevTools / Lighthouse напрямую (см. F19).
 
 ### F1. shared/ui (shadcn)
 
