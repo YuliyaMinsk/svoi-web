@@ -11,7 +11,9 @@
 
 | # | Фича | Что делает | Зависит от | Почему отдельная |
 |---|------|------------|------------|------------------|
-| F0 | **project/init** | `create-next-app@latest` (Next.js 16: App Router и Turbopack по дефолту, ESLint Flat Config через `eslint.config.mjs`, AGENTS.md создаётся автоматически). TypeScript + Tailwind + `src/`-директория. Создание FSD-слоев внутри src/ (`src/{pages,features,entities,shared}/` + `src/app/styles/`), перенос `globals.css` в `src/app/styles/`, правка импорта в `layout.tsx`. `src/app/` остается роутером Next.js. `tsconfig.json` paths `@/* → ./src/*` уже настроен create-next-app. `.gitignore`, первый коммит. | — | Разовая стартовая настройка. Не должна смешиваться с продуктовыми фичами — если что-то здесь сломается, сломается все. |
+| F0.1 | **project/init** | `create-next-app@latest` (Next.js 16: App Router и Turbopack по дефолту, ESLint Flat Config через `eslint.config.mjs`, AGENTS.md создается автоматически). TypeScript + Tailwind + `src/`-директория. Создание FSD-слоев внутри src/ (`src/{pages,features,entities,shared}/` + `src/app/styles/`), перенос `globals.css` в `src/app/styles/`, правка импорта в `layout.tsx`. `src/app/` остается роутером Next.js. `tsconfig.json` paths `@/* → ./src/*` уже настроен create-next-app. `.gitignore`, первый коммит. | — | Разовая стартовая настройка. Не должна смешиваться с продуктовыми фичами - если что-то здесь сломается, сломается все. |
+| F0.2 | **tooling/openspec** | Установка `@fission-ai/openspec` как dev-зависимости. `npx openspec init` с выбором инструментов (Claude Code, Codex, GitHub Copilot). Заполнение `openspec/config.yaml` project context'ом (стек, FSD, TDD workflow, конвенции коммитов, палитра). Изучить структуру `openspec/specs/`, `openspec/changes/`, `.claude/skills/`, `.claude/commands/opsx/`. | F0.1 | OpenSpec - инфраструктура процесса разработки, не продуктовая фича. Должен быть готов до F3 (первая фича через TDD цикл). Project context критичен: без него AI-ассистенты генерируют спеки без знания стека. |
+| F0.3 | **tooling/test-stack** | Установка Vitest + @vitejs/plugin-react + jsdom + RTL (react, jest-dom, user-event) + @vitest/ui. Установка Playwright + chromium. Конфиги: `vitest.config.ts`, `playwright.config.ts`, `tests/setup.ts`. Создание папки `tests/` зеркалящей `src/`. Скрипты в `package.json` (`test`, `test:ui`, `test:e2e`). Smoke-тест - один passing assertion для проверки что pipeline работает. | F0.1 | Тестовый стек - инфраструктура. Должен быть готов до F3, когда начинается TDD цикл (тесты пишутся до кода). Изоляция конфигов от продуктовых фич означает что любые проблемы с настройкой Vitest/Playwright не блокируют разработку. |
 | F1 | **shared/ui (shadcn)** | `npx shadcn@latest init`, настройка `components.json` с алиасами на `@/shared/ui`, `@/shared/lib/cn`. Установка компонентов `button` и `card`. | F0 | shadcn заводит свою инфраструктуру (`components.json`, `lib/utils`) — настроить до того как писать UI. Алиасы под FSD задаются здесь. |
 | F2 | **shared/styles** | Подключение Manrope через `next/font/google`, CSS-переменные палитры Original в `globals.css` (`--background`, `--primary`, `--primary-hover`, `--radius`, `--shadow-card`), кастомизация `shared/ui/button.tsx` под палитру. | F1 | Дизайн-токены должны быть готовы до первого экрана. Кастомизация Button — отдельная задача от установки shadcn. |
 | F3 | **entities/master/types + shared/config** | Все TS типы в `entities/master/model/types.ts` (`MasterConfig`, `ServiceConfig`, `ContactsConfig`, `BotMessage`, `Step`), public API через `index.ts`. Константа `MASTER` в `shared/config/master-config.ts`. Утилиты `deeplinks.ts` и `dev-log.ts` в `shared/lib/`. | F0 (типы независимы от UI) | Фундамент. Контракт данных фиксируем рано — спека и тесты на форму данных без поведения. |
@@ -88,17 +90,17 @@ F19
 
 ### F0. project/init
 
-- [ ] Запустить интерактивный промпт: `npx create-next-app@latest svoi-web` и выбрать «recommended defaults» (TypeScript + ESLint + Tailwind + App Router + AGENTS.md), либо `--yes` для пропуска. **В Next.js 16:** App Router и Turbopack включены по умолчанию (флаги `--app`, `--turbopack`, `--eslint` больше не нужны), AGENTS.md создаётся автоматически, конфиг ESLint — `eslint.config.mjs` (Flat Config), `next build` сам линт не запускает
-- [ ] Подтвердить, что `src/`-директория выбрана в промпте (пункт «Would you like your code inside a `src/` directory?»)
-- [ ] Создать FSD-слои: `mkdir -p src/{pages,features,entities,shared/{ui,lib,config,assets}}`
-- [ ] Перенести стили: `mkdir -p src/app/styles && mv src/app/globals.css src/app/styles/globals.css`
-- [ ] Обновить импорт в `src/app/layout.tsx`: `import "./globals.css"` → `import "@/app/styles/globals.css"`
-- [ ] Добавить README.md в каждый пустой FSD-слой (pages, features, entities, shared) с кратким описанием назначения - чтобы git зафиксировал папки и было понятно при онбординге
-- [ ] Проверить `tsconfig.json` - alias `@/*` указывает на `./src/*`; `include` содержит `.next/dev/types/**/*.ts` (в Next.js 16 `next dev` пишет в `.next/dev`, `next build` — в `.next`)
-- [ ] Проверить `package.json`: `"dev": "next dev"`, `"build": "next build"`, `"lint": "eslint"` (без `next lint` — он удалён в v16)
-- [ ] Проверить `.gitignore` (next/node/build/.env)
-- [ ] Первый коммит: `chore: initial project setup with FSD structure`
-- [ ] **Проверка:** `npm run dev` запускает дефолтную страницу Next.js на http://localhost:3000 без ошибок
+- [x] Запустить интерактивный промпт: `npx create-next-app@latest svoi-web` и выбрать «recommended defaults» (TypeScript + ESLint + Tailwind + App Router + AGENTS.md), либо `--yes` для пропуска. В Next.js 16: App Router и Turbopack включены по умолчанию (флаги `--app`, `--turbopack`, `--eslint` больше не нужны), AGENTS.md создается автоматически, конфиг ESLint - `eslint.config.mjs` (Flat Config), `next build` сам линт не запускает ✅ 2026-05-23
+- [x] Подтвердить, что `src/`-директория выбрана в промпте (пункт «Would you like your code inside a `src/` directory?») ✅ 2026-05-23
+- [x] Создать FSD-слои: `mkdir -p src/{pages,features,entities,shared/{ui,lib,config,assets}}` ✅ 2026-05-23
+- [x] Перенести стили: `mkdir -p src/app/styles && mv src/app/globals.css src/app/styles/globals.css` ✅ 2026-05-23
+- [x] Обновить импорт в `src/app/layout.tsx`: `import "./globals.css"` → `import "@/app/styles/globals.css"` ✅ 2026-05-23
+- [x] Добавить README.md в каждый пустой FSD-слой (pages, features, entities, shared) с кратким описанием назначения - чтобы git зафиксировал папки и было понятно при онбординге ✅ 2026-05-23
+- [x] Проверить `tsconfig.json` - alias `@/*` указывает на `./src/*`; `include` содержит `.next/dev/types/**/*.ts` (в Next.js 16 `next dev` пишет в `.next/dev`, `next build` - в `.next`) ✅ 2026-05-23
+- [x] Проверить `package.json`: `"dev": "next dev"`, `"build": "next build"`, `"lint": "eslint"` (без `next lint` - он удален в v16) ✅ 2026-05-23
+- [x] Проверить `.gitignore` (next/node/build/.env) ✅ 2026-05-23
+- [x] Первый коммит: `chore: initial project setup with FSD structure` ✅ 2026-05-23
+- [x] **Проверка:** `npm run dev` запускает дефолтную страницу Next.js на http://localhost:3000 без ошибок ✅ 2026-05-23
 
 **Заметка об архитектурном решении:** `src/app/` остается папкой роутинга Next.js (layout.tsx, page.tsx, маршруты, styles/). Бизнес-логика и UI экранов живут в FSD-слоях `src/pages/`, `src/features/`, `src/entities/`, `src/shared/`. Заглушка `pages/` в корне не нужна - Next.js 13+ корректно работает с `src/app/` без этого.
 
@@ -107,6 +109,44 @@ F19
 - **next/image defaults:** `images.qualities` по умолчанию `[75]` — для значений вне этого набора настраивать в `next.config.ts`. Локальные src без query-параметров работают как раньше (нужны они — `images.localPatterns`).
 - **React 19.2 + React Compiler:** компилятор стабилен, но **не включаем** для demo (увеличивает время билда через Babel). `<ViewTransition>` из React 19.2 не используем — остаёмся на framer-motion.
 - **`next build` output:** убраны метрики `size` и `First Load JS` — для оценки бандла использовать Chrome DevTools / Lighthouse напрямую (см. F19).
+
+### F0.2. tooling/openspec
+
+- [x] Установить OpenSpec локально: `npm install --save-dev @fission-ai/openspec` ✅ 2026-05-23
+- [x] Инициализация: `npx openspec init`. На вопросе про инструменты выбрать **Claude Code, Codex, GitHub Copilot** (пробелом отмечать, Enter подтвердить) ✅ 2026-05-23
+- [x] Убедиться что создались: `openspec/{config.yaml, specs/, changes/}`, `.claude/{skills/, commands/opsx/}`, `.codex/skills/`, `.github/{prompts/, skills/}`, `CLAUDE.md` с импортом `@AGENTS.md` ✅ 2026-05-23
+- [x] Заполнить `openspec/config.yaml` блоком `context:` (стек, FSD-структура, тестовый стек, TDD workflow, конвенции коммитов, палитра Original). Контент: см. отдельный сниппет в этом плане ниже ✅ 2026-05-23
+- [x] Заполнить блок `rules:` для `proposal` (фокус на одну фичу, ссылка на ID фичи, acceptance criteria для тестов) и `tasks` (TDD-aligned chunks, явная задача "write failing tests" перед "implement") ✅ 2026-05-23
+- [x] Изучить структуру skill-файлов: `cat .claude/skills/openspec-propose/SKILL.md` и аналогичные - понять что AI-ассистент будет делать на каждой фазе ✅ 2026-05-23
+- [x] Перезапустить VS Code/Cursor чтобы slash-команды `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, `/opsx:explore` стали доступны ✅ 2026-05-23
+- [x] Коммит: `chore: setup OpenSpec with project context (Next.js 16, FSD, TDD)` ✅ 2026-05-23
+- [x] **Проверка:** `npx openspec list` отрабатывает без ошибок (показывает пустой список активных changes - норма для старта) ✅ 2026-05-23
+
+**Заметка про workflow:** для каждой продуктовой фичи (F3+) цикл будет следующий:
+1. `/opsx:propose <feature-name>` или `npx openspec propose <feature-name>` - создается папка в `openspec/changes/<name>/` с proposal.md, design.md, tasks.md, дельта-спеками
+2. Ревью созданных артефактов (особенно дельта-спек - это контракт фичи)
+3. Написание тестов по acceptance criteria из спеки - они **падают красным** (RED)
+4. Минимальный код, тесты становятся **зелеными** (GREEN)
+5. Рефакторинг при сохранении зеленых тестов
+6. `npx openspec archive <feature-name>` - дельты автоматически вливаются в `openspec/specs/`, change уходит в `openspec/changes/archive/`
+
+### F0.3. tooling/test-stack
+
+- [x] Установить Vitest и зависимости: `npm install --save-dev vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event @vitest/ui` ✅ 2026-05-23
+- [x] Установить Playwright: `npm install --save-dev --save-exact @playwright/test` + `npx playwright install chromium` (только Chromium, для demo достаточно, экономит ~500MB) ✅ 2026-05-23
+- [x] Создать `vitest.config.ts` в корне с настройками: `plugins: [react()]`, `environment: 'jsdom'`, `setupFiles: ['./tests/setup.ts']`, `globals: true`, `include: ['tests/**/*.test.{ts,tsx}']` ✅ 2026-05-23
+- [x] Создать `tests/setup.ts` с импортом `@testing-library/jest-dom/vitest` ✅ 2026-05-23
+- [x] Создать `playwright.config.ts` в корне: `testDir: './tests/e2e'`, `use: { baseURL: 'http://localhost:3000' }`, `webServer: { command: 'npm run dev', url: 'http://localhost:3000', reuseExistingServer: !process.env.CI }`, проекты только `chromium` ✅ 2026-05-23
+- [x] Создать структуру папки `tests/` зеркалящей `src/`: `mkdir -p tests/{shared/{ui,lib},entities/master,features/{client-flow,master-view},pages/{home,master},e2e}` ✅ 2026-05-23
+- [x] Создать `tests/README.md` объясняющий: тесты живут в отдельной папке, структура зеркалит src/, unit-тесты с расширением `.test.tsx`, e2e в `tests/e2e/` с `.spec.ts` ✅ 2026-05-23
+- [x] Добавить в `.gitignore`: `playwright-report/`, `test-results/`, `.playwright/` ✅ 2026-05-23
+- [x] Скрипты в `package.json`: `"test": "vitest"`, `"test:run": "vitest run"`, `"test:ui": "vitest --ui"`, `"test:e2e": "playwright test"`, `"test:e2e:ui": "playwright test --ui"` ✅ 2026-05-23
+- [x] Smoke-тест для Vitest: `tests/shared/lib/smoke.test.ts` с одним assertion (`expect(1 + 1).toBe(2)`) - проверяет что pipeline работает ✅ 2026-05-23
+- [x] Smoke-тест для Playwright: `tests/e2e/smoke.spec.ts` который открывает `/` и проверяет что title содержит "Create Next App" (или что-то из дефолтной страницы) ✅ 2026-05-23
+- [x] Запустить `npm run test:run` - smoke-тест проходит ✅ 2026-05-23
+- [x] Запустить `npm run test:e2e` - smoke-тест проходит ✅ 2026-05-23
+- [x] Коммит: `chore: setup test stack (Vitest + RTL + Playwright)` ✅ 2026-05-23
+- [x] **Проверка:** оба smoke-теста проходят, `npm run test:ui` открывает UI Vitest, `npm run test:e2e:ui` открывает UI Playwright ✅ 2026-05-23
 
 ### F1. shared/ui (shadcn)
 
@@ -128,6 +168,8 @@ F19
 - [ ] **Проверка:** на тестовой странице рендерится `<Button>Тест</Button>` с терракотовым фоном и Manrope
 
 ### F3. entities/master/types + shared/config
+
+С этого шага включается полный OpenSpec + TDD цикл.
 
 - [ ] Создать `src/entities/master/model/types.ts` со всеми типами из PRD раздел 5
 - [ ] Создать `src/entities/master/index.ts` — public API с реэкспортами типов
