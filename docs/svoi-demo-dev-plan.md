@@ -187,13 +187,19 @@ F19
 
 ### F2. shared/styles
 
-- [ ] Подключить Manrope через `next/font/google` в `app/layout.tsx`
-- [ ] Применить шрифт глобально через CSS-переменную или класс на body
-- [ ] Заменить shadcn-дефолтные CSS-переменные в `src/app/styles/globals.css` на палитру Original
-- [ ] Добавить custom переменные `--primary-hover`, `--shadow-card`
-- [ ] Открыть `src/shared/ui/button.tsx`, проверить что variant default использует `--primary`
-- [ ] При необходимости подправить классы variant (radius, цвета)
-- [ ] **Проверка:** на тестовой странице рендерится `<Button>Тест</Button>` с терракотовым фоном и Manrope
+**Решения (обсуждены):**
+- Пресет переключён `radix-nova` → **`radix-maia`** (база `radix` не менялась; Maia доступна и на radix, и на base). Перегенерены `button.tsx`/`card.tsx` через `add --overwrite`. Фишка Maia — pill-кнопки `rounded-4xl`. Новых зависимостей не потянуло.
+- Радиус кнопки: побеждает **Maia pill** (`rounded-4xl`), а не PRD-шные 16px.
+- Цвета — ровно hex из таблицы PRD §8.1 (не oklch). Токены вне PRD (`secondary/accent/popover/destructive/chart/sidebar`) подогнаны под тёплую гамму.
+- `.dark`-блок удалён — демо в одной светлой гамме.
+
+- [x] Подключить Manrope через `next/font/google` в `app/layout.tsx` (заменён Geist; `lang="ru"`) ✅ 2026-06-01
+- [x] Применить шрифт глобально как `--font-sans` (Manrope `variable`), подхватывается `@theme inline` ✅ 2026-06-01
+- [x] Заменить shadcn-дефолтные CSS-переменные в `src/app/styles/globals.css` на палитру Original ✅ 2026-06-01
+- [x] Добавить custom переменные `--primary-hover`, `--shadow-card` (+ зарегистрированы в `@theme inline` как `--color-primary-hover`, `--shadow-card`) ✅ 2026-06-01
+- [x] `src/shared/ui/button.tsx`: variant default использует `--primary`, hover переключён на `bg-primary-hover` ✅ 2026-06-01
+- [x] Радиус оставлен Maia pill (`rounded-4xl`), `.dark` убран, мёртвая ссылка на geist-mono удалена ✅ 2026-06-01
+- [x] **Проверка:** e2e на временной `/ui-check` — `<Button>Тест</Button>` рендерится с фоном `rgb(201,123,90)` (терракот) + Manrope + pill; скриншот подтверждён, временные файлы удалены ✅ 2026-06-01
 
 ### F3. entities/master/types + shared/config
 

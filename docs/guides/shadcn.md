@@ -25,7 +25,7 @@ npx shadcn@latest add button card ...
 | `lib` | `@/shared/lib` |
 | `hooks` | `@/shared/lib/hooks` |
 
-`style: "radix-nova"` и `baseColor: "neutral"` зафиксированы при init и не меняются.
+`baseColor: "neutral"` зафиксирован при init. `style` изначально был `radix-nova`, в F2 переключён на **`radix-maia`** (тот же база `radix`, пресет Maia — фирменные pill-кнопки `rounded-4xl`). Смена пресета = `components.json` `style` + `npx shadcn add <comp> --overwrite` из корня проекта (база не менялась, Maia доступна и на `radix`, и на `base`). Палитра/шрифт перекрыты в F2 (терракот + Manrope).
 
 ## React 19 / Tailwind v4 конвенции
 
