@@ -1,13 +1,33 @@
 # Development Plan: «Свои» — Demo
 
 **Источник:** PRD v0.3  
-**Назначение:** план разработки demo пошагово - от пустого репозитория до готового локально работающего проекта. По этому плану пишутся спеки фич, по спекам - тесты.
+**Назначение:** план разработки demo пошагово - от пустого репозитория до готового локально работающего проекта. По этому плану пишутся спеки фич, по спекам - тесты (для модулей, где они уместны — см. раздел 1.1).
 
 ---
 
 ## 1. Нарезка на фичи
 
-Цель — каждый шаг проверяется тестами независимо, между шагами проект собирается и работает локально.
+Цель — между шагами проект собирается и работает локально. Покрытие тестами зависит от типа фичи (см. 1.1).
+
+### 1.1 Политика тестирования для demo
+
+Полный TDD-цикл (RED → GREEN → REFACTOR) применяется **только** к фичам с бизнес-логикой и контрактами, которые точно переживут демо:
+
+| Фича | Тип | Стратегия | Почему |
+|------|-----|-----------|--------|
+| F3 — types + config + deeplinks + dev-log | бизнес-логика / контракты | **TDD (unit)** | Контракт данных и pure functions (`getTelegramLink`, etc.) — переживут demo, дешево покрыть. |
+| F7 — `useClientFlow` (state machine) | бизнес-логика | **TDD (unit)** | Чистая логика переходов из PRD 6.1, легко тестируется через `renderHook`, ломаться будет даже после редизайна UI. |
+| F11 — `ScreenContact` (deep-link клики) | UI + side effect | Логика deeplinks покрыта в F3. Сам экран — BDD + ручная проверка. | Тестировать `window.open` через моки — больше шума, чем пользы для demo. |
+| F15 — `messages-config` (данные) | данные | **Unit-валидация формы** (sanity-чек: длина, типы) | Один маленький тест защищает от опечаток в конфиге, который читается асинхронно. |
+| F16 — sequential timers | поведение во времени | **TDD (unit)** через `vi.useFakeTimers()` | Граничные случаи (unmount во время play, повторный mount) — без тестов отловишь только руками. |
+| **Все остальные UI-фичи** (F1, F2, F4–F6, F8–F10, F12–F14, F17, F18) | презентация | **Без unit-тестов.** BDD-сценарии + ручная проверка в браузере. | Верстка и анимации до демо могут перерисоваться; ретесты на каждый CSS-твик — оверкилл. |
+| F19 — final pass | QA | Опционально 1–2 Playwright e2e на happy paths (welcome → closure, /master rendering) | Один e2e даёт больше уверенности перед демо, чем десяток unit на UI. |
+
+**После demo** (когда проект расширяется): добавляем Playwright e2e на ключевые user-flows, а unit-тесты — на любую новую бизнес-логику (формы, валидации, интеграции с API/Telegram-ботом). UI-компоненты покрываем тестами только когда стабилизируется дизайн.
+
+**OpenSpec используется для всех фич** (F3+) — спеки и acceptance criteria полезны как ТЗ независимо от того, пишутся ли по ним тесты. Для UI-фич cycle становится: spec → код → ручная проверка по acceptance criteria.
+
+---
 
 | # | Фича | Что делает | Зависит от | Почему отдельная |
 |---|------|------------|------------|------------------|
@@ -150,12 +170,20 @@ F19
 
 ### F1. shared/ui (shadcn)
 
-- [ ] `npx shadcn@latest init` с опциями: New York style, neutral base color, CSS variables yes
-- [ ] Отредактировать `components.json` — алиасы на `@/shared/ui`, `@/shared/lib/cn`
-- [ ] Переместить `cn` утилиту в `src/shared/lib/cn.ts` если CLI положил не туда
-- [ ] `npx shadcn@latest add button` — проверить что попало в `src/shared/ui/`
-- [ ] `npx shadcn@latest add card` — проверить что попало в `src/shared/ui/`
-- [ ] **Проверка:** импорт `import { Button } from '@/shared/ui/button'` работает в любом файле
+**Контекст стека:** Next 16.2.6 + React 19.2 + Tailwind v4 (CSS-first, без `tailwind.config.js`). `globals.css` лежит нестандартно — `src/app/styles/globals.css`. Структура FSD: компоненты идут в `src/shared/ui`, не в `@/components/ui`.
+
+**Решения (обсуждены):**
+- Тёмная тема: принимаем подход shadcn для v4 — токены в `oklch` + класс `.dark`. Текущий `@media (prefers-color-scheme)` заменён.
+- `cn`: алиас `utils` → `@/shared/lib/cn` → файл в `src/shared/lib/cn.ts`.
+- **CLI 4.9 ≠ старый shadcn** (см. `docs/guides/shadcn.md`): нет стиля `new-york`/флага `--base-color`. Стиль = база+пресет. Выбрано: база `radix`, пресет `nova`. Команда: `npx shadcn@latest init -b radix -p nova -y` (без `-p` зависает на промпте даже с `-y`). Палитра/шрифт перекрываются в F2.
+
+- [x] Сохранить выжимку актуального гайда shadcn в `docs/guides/shadcn.md` (с версиями libs в шапке) ✅ 2026-06-01
+- [x] `npx shadcn@latest init -b radix -p nova -y` — CSS vars yes; CLI сам нашёл `src/app/styles/globals.css` ✅ 2026-06-01
+- [x] Зависимости (`radix-ui`, `clsx`, `tailwind-merge`, `class-variance-authority`, `lucide-react`, `tw-animate-css`, `shadcn`) — прогнаны через `dependency-guard`; `npm audit`: 2 moderate (postcss транзитивно из Next, не из shadcn — оставлено) ✅ 2026-06-01
+- [x] Отредактирован `components.json`: `aliases` → `@/shared`, `@/shared/ui`, `@/shared/lib/cn`, `@/shared/lib`, `@/shared/lib/hooks`; `tailwind.css` авто = `src/app/styles/globals.css` ✅ 2026-06-01
+- [x] `cn` перенесён в `src/shared/lib/cn.ts`, `src/lib/` удалён ✅ 2026-06-01
+- [x] `npx shadcn@latest add button card` → оба в `src/shared/ui/`, импортируют `cn` из `@/shared/lib/cn` ✅ 2026-06-01
+- [x] **Проверка:** `tsc --noEmit` чисто + Vitest-тест импорта `@/shared/ui/button` и `@/shared/ui/card` прошёл ✅ 2026-06-01
 
 ### F2. shared/styles
 
@@ -169,7 +197,14 @@ F19
 
 ### F3. entities/master/types + shared/config
 
-С этого шага включается полный OpenSpec + TDD цикл.
+**Стратегия:** OpenSpec + **TDD** (см. 1.1). С этой фичи включается полный цикл `spec → failing tests → code → green`.
+
+**Что покрываем тестами:**
+- `deeplinks.ts` — три pure functions: правильный URL по контактам из `MASTER`, корректная кодировка спецсимволов в WhatsApp-тексте.
+- Контракт `MASTER` — sanity-чек: все обязательные поля заполнены (smoke-тест через `expect(MASTER.service.name).toBeTruthy()` и т.п.).
+- `devLog` — что вызывает `console.log` только в dev (mock через `vi.stubEnv('NODE_ENV', ...)`).
+
+Тесты живут в `tests/shared/lib/deeplinks.test.ts`, `tests/shared/config/master-config.test.ts`, `tests/shared/lib/dev-log.test.ts`.
 
 - [ ] Создать `src/entities/master/model/types.ts` со всеми типами из PRD раздел 5
 - [ ] Создать `src/entities/master/index.ts` — public API с реэкспортами типов
@@ -212,6 +247,13 @@ F19
 
 ### F7. features/client-flow/model — useClientFlow
 
+**Стратегия:** **TDD**. State-машина — чистая логика, дёшево и полезно покрыть тестами.
+
+**Что покрываем тестами** (`tests/features/client-flow/use-client-flow.test.ts` через `renderHook`):
+- Стартовый шаг = `'welcome'`.
+- Все переходы из PRD 6.1: welcome.intent → notify, welcome.reject → closureEarly, notify.intent → priority, notify.reject → closure, priority.intent → contact, priority.reject → closure, contact.* → closure.
+- Из терминальных состояний (`closure`, `closureEarly`) повторный `goTo` не ломает state (или явно no-op — фиксируем поведение).
+
 - [ ] Создать `src/features/client-flow/model/use-client-flow.ts`
 - [ ] Реализовать хук с `useState<Step>('welcome')`
 - [ ] Функция `goTo(action: 'intent' | 'reject')` с логикой переходов согласно PRD 6.1
@@ -248,6 +290,8 @@ F19
 
 ### F11. features/client-flow/ui — ScreenContact + deeplinks
 
+**Стратегия:** Без unit-тестов на экран. Логика `deeplinks` уже покрыта в F3. Поведение `window.open` + переход — ручная проверка в браузере (на реальных устройствах — в F19).
+
 - [ ] Создать `src/features/client-flow/ui/ScreenContact.tsx`
 - [ ] Сверстать: заголовок-вопрос + три кнопки мессенджеров + мелкий disclaimer внизу
 - [ ] Каждая кнопка использует функцию из `deeplinks.ts` + `MASTER.contacts.*`
@@ -280,6 +324,13 @@ F19
 
 ### F15. features/master-view/model + ui/BotMessage
 
+**Стратегия:** **Unit-sanity** на конфиг данных, UI компонента — без тестов (BDD + ручная проверка).
+
+**Что покрываем тестами** (`tests/features/master-view/messages-config.test.ts`):
+- Конфиг — непустой массив `BotMessage[]`.
+- Все элементы имеют валидный `type`, `delayMs >= 0`, непустой `text` (для типов кроме `system`).
+- Тайминги монотонны (накопительная сумма `delayMs` строго возрастает) — защита от опечатки порядка.
+
 - [ ] Создать `src/features/master-view/model/messages-config.ts` — массив `BotMessage[]` согласно PRD 7.2
 - [ ] Создать `src/features/master-view/ui/BotMessage.tsx`
 - [ ] Рендер пузыря: белый фон, скругление, тень, текст, время справа внизу
@@ -289,6 +340,13 @@ F19
 - [ ] **Проверка:** рендерить статически 2-3 сообщения — выглядят как Telegram, анимация работает
 
 ### F16. features/master-view/ui — sequential rendering
+
+**Стратегия:** **TDD** на таймерную логику через `vi.useFakeTimers()`. Скролл и DOM — ручная проверка.
+
+**Что покрываем тестами** (`tests/features/master-view/telegram-chat.test.tsx`):
+- После mount показано 0 сообщений; через накопленный `delayMs` каждого — `visibleCount` инкрементится.
+- При unmount во время воспроизведения нет ошибок и нет утечек таймеров (проверка через `vi.getTimerCount() === 0` после cleanup).
+- Повторный mount стартует с нуля (нет глобального state).
 
 - [ ] Обновить `TelegramChat.tsx`: использовать `messagesConfig`
 - [ ] Через `useEffect` + `setTimeout` показывать сообщения по очереди согласно `delayMs`
@@ -318,12 +376,15 @@ F19
 
 ### F19. qa/final-pass
 
+**Стратегия:** ручная QA на устройствах + опциональный Playwright e2e на happy paths.
+
 - [ ] Прочитать все тексты на всех экранах — опечатки, грамматика, единый тон
 - [ ] Открыть `/` на iPhone (или DevTools iPhone SE 375x667) — все 6 экранов корректны
 - [ ] Открыть `/` на Android — все 6 экранов корректны
 - [ ] Открыть `/master` на обоих — сообщения появляются, счетчик работает, карточка читается
 - [ ] Проверить deep-link на реальном телефоне — Telegram, WhatsApp, Instagram открываются
 - [ ] Прогнать Lighthouse — performance > 80 на mobile
+- [ ] (Опционально) Playwright e2e: один сценарий happy path для `/` (welcome → notify → priority → contact → closure без реального `window.open`, замоканного через `page.evaluate`) и один smoke для `/master` (страница открывается, шапка с "Свои — Алина" видна). Файлы: `tests/e2e/client-flow.spec.ts`, `tests/e2e/master-view.spec.ts`.
 - [ ] Если что-то ломается — исправить в рамках этой фичи
 - [ ] Финальный коммит: `feat: demo ready for showing`
 
@@ -343,8 +404,21 @@ F19
 
 ## 6. Связь с PRD и спеками
 
-**Этот документ:** что и в каком порядке делать.  
+**Этот документ:** что и в каком порядке делать + где применяется TDD (раздел 1.1).  
 **PRD:** что именно должно получиться (тексты, типы, дизайн-токены, поведение).  
-**Спеки фич:** детали реализации каждой конкретной фичи + критерии приемки для тестов.
+**Спеки фич:** детали реализации каждой конкретной фичи + критерии приемки. Для фич с TDD acceptance criteria превращаются в тесты; для UI-фич — в чеклист ручной проверки.
 
 При работе над фичей: открыты план + PRD + спека. План задает контекст, PRD — конкретику, спека — детальное руководство.
+
+---
+
+## 7. Тестовая стратегия после demo
+
+Когда demo показан и проект переходит в активную разработку, объём тестов расширяется:
+
+1. **Playwright e2e** становится основным инструментом регрессий для UI — каждый ключевой user-flow покрывается одним сценарием. Cheaper than unit-тесты на компоненты, ловит реальные интеграционные баги.
+2. **Unit-тесты** обязательны для любого нового модуля бизнес-логики: формы, валидации, интеграции с Telegram-ботом, бэкендом записей, очередью уведомлений.
+3. **UI-компоненты** покрываются тестами только когда дизайн стабилизировался и компонент стал переиспользуемым (попал в `shared/ui` или `entities/*/ui`). Одноразовые экраны фич — без unit-тестов.
+4. **Конфиги и данные** (как `messages-config`) — минимальный sanity-чек на форму, чтобы опечатки не доезжали до прода.
+
+Эту секцию пересматриваем после первой реальной итерации с пользователями.
