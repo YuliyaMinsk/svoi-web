@@ -8,12 +8,14 @@ TBD - created by archiving change f3-master-types-config. Update Purpose after a
 
 ### Requirement: Master domain type contract
 
-The `entities/master` slice SHALL define the demo's data contract in `model/types.ts` and expose it through its public API (`index.ts`): `Step`, `MasterConfig`, `ServiceConfig`, `ContactsConfig`, and `BotMessage`, matching PRD §5. Under TypeScript strict mode these types MUST be importable from `@/entities/master` and MUST constrain consumers as specified.
+The `shared/model` segment SHALL define the demo's data contract and expose it through its public API (`index.ts`): `Step`, `MasterConfig`, `ServiceConfig`, `ContactsConfig`, and `BotMessage`, matching PRD §5. Under TypeScript strict mode these types MUST be importable from `@/shared/model` and MUST constrain consumers as specified.
 
-#### Scenario: Types are reachable via the entity public API
+(Relocated from `entities/master` during F3.5 to satisfy FSD boundary linting with no suppressions: the lower `shared` layer must not import _from_ a higher layer, so the data contract consumed by `shared/config` lives in `shared`. The segment is named `model` — a purpose-based name — because `fsd/segments-by-purpose` forbids a `types` segment.)
 
-- **WHEN** a module imports `MasterConfig`, `ServiceConfig`, `ContactsConfig`, `Step`, or `BotMessage` from `@/entities/master`
-- **THEN** the import type-checks (no use of deep paths into `model/`) and `tsc --noEmit` passes
+#### Scenario: Types are reachable via the shared model public API
+
+- **WHEN** a module imports `MasterConfig`, `ServiceConfig`, `ContactsConfig`, `Step`, or `BotMessage` from `@/shared/model`
+- **THEN** the import type-checks (no use of deep paths into the segment) and `tsc --noEmit` passes
 
 #### Scenario: Step enumerates the six survey steps
 

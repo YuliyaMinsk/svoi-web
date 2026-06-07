@@ -36,7 +36,7 @@
 ## 6. Aggregating check script
 
 - [x] 6.1 Added `"check": "tsc --noEmit && eslint . && prettier --check . && steiger src"` to `package.json` scripts (order per design Decision 6)
-- [ ] 6.2 Verify: `npm run check` exits zero on the current code (after the group-8 format pass for the `prettier --check` step)
+- [x] 6.2 Verify: `npm run check` exits zero on the formatted tree (confirmed after the group-8 format pass — tsc + eslint + prettier + steiger all clean)
 
 ## 7. Non-lintable rules in openspec/config.yaml
 
