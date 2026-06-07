@@ -22,10 +22,11 @@ context: |
   - No cross-imports between features
   
   Testing:
-  - Vitest + React Testing Library for unit/integration
-  - Playwright for e2e
-  - Tests live in tests/ directory at repo root, mirroring src/ structure
-  - TDD cycle: red (failing test) -> green (minimal code) -> refactor
+  - Vitest + React Testing Library for unit tests (incl. hooks via renderHook), Playwright for e2e
+  - Tests live in tests/ at repo root, mirroring src/ structure
+  - TDD is test-first (red: failing test -> green: minimal code -> refactor), but only for Vitest unit tests on business logic, contracts, and pure functions (state machines, utils, data/config validation) - code that outlives UI churn
+  - UI/presentation (screens, layout, animations): no unit tests, verify against acceptance criteria; add tests only once a component stabilizes into a reusable piece
+  - Playwright e2e: written after the UI exists (never test-first), key user-flows as regression; minimal during demo, expands later
   - Test behavior, not implementation details (use RTL role/label queries)
   
   Development process:
