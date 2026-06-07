@@ -4,7 +4,7 @@ Tests live in a separate `tests/` directory mirroring the `src/` structure. This
 
 ## Structure
 
-​```
+​`
 tests/
 ├── setup.ts                # Vitest setup (jest-dom matchers)
 ├── shared/                 # Tests for src/shared/
@@ -14,7 +14,7 @@ tests/
 ├── features/               # Tests for src/features/
 ├── pages/                  # Tests for src/pages/
 └── e2e/                    # Playwright end-to-end tests
-​```
+​`
 
 ## Conventions
 
@@ -25,10 +25,10 @@ tests/
 
 ## Commands
 
-​```bash
+​`bash
 npm run test          # Vitest watch mode
 npm run test:run      # Vitest single run (for CI/quick check)
 npm run test:ui       # Vitest UI for debugging
 npm run test:e2e      # Playwright e2e tests
 npm run test:e2e:ui   # Playwright UI mode
-​```
+​`

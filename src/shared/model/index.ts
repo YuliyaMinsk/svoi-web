@@ -4,4 +4,4 @@ export type {
   ServiceConfig,
   ContactsConfig,
   BotMessage,
-} from './model/types'
+} from './master';

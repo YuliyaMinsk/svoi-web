@@ -1,0 +1,17 @@
+# Build output & generated
+.next
+out
+build
+next-env.d.ts
+*.tsbuildinfo
+
+# Dependencies
+node_modules
+
+# Test artifacts
+playwright-report
+test-results
+coverage
+
+# Lockfile (npm-managed)
+package-lock.json

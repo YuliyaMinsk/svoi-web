@@ -17,11 +17,13 @@ No UI, no routing, no behavior wired into screens — pure contract + helpers on
 ## Capabilities
 
 ### New Capabilities
+
 - `master-config`: The master entity data model (TS types) and the singleton `MASTER` configuration object that downstream features consume, exposed via the entity public API.
 - `messenger-deeplinks`: Pure functions that build Telegram / WhatsApp / Instagram deep-link URLs from contact handles, normalizing `@`-prefixes, phone formatting, and URL-encoding optional prefilled text.
 - `dev-logging`: A `devLog` helper that forwards to `console.log` only in non-production environments, giving the demo debug output without leaking logs to a production build.
 
 ### Modified Capabilities
+
 <!-- None — openspec/specs/ is empty; F3 is the first spec-driven feature. -->
 
 ## Impact

@@ -68,6 +68,7 @@ npm run test:run -- -t "getWhatsAppLink"                 # by test name
 ```
 
 Notes:
+
 - Vitest config lives in [vitest.config.ts](./vitest.config.ts); specs are under
   `tests/**/*.test.{ts,tsx}`. The `tests/e2e/**` folder is excluded from Vitest.
 - Playwright specs live in `tests/e2e/**/*.spec.ts`. The Playwright config starts

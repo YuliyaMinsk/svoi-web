@@ -17,13 +17,13 @@ npx shadcn@latest add button card ...
 
 Уже настроено в `components.json` под нашу FSD-структуру:
 
-| alias | путь |
-|---|---|
-| `components` | `@/shared` |
-| `ui` | `@/shared/ui` |
-| `utils` | `@/shared/lib/cn` |
-| `lib` | `@/shared/lib` |
-| `hooks` | `@/shared/lib/hooks` |
+| alias        | путь                 |
+| ------------ | -------------------- |
+| `components` | `@/shared`           |
+| `ui`         | `@/shared/ui`        |
+| `utils`      | `@/shared/lib/cn`    |
+| `lib`        | `@/shared/lib`       |
+| `hooks`      | `@/shared/lib/hooks` |
 
 `baseColor: "neutral"` зафиксирован при init. `style` изначально был `radix-nova`, в F2 переключён на **`radix-maia`** (тот же база `radix`, пресет Maia — фирменные pill-кнопки `rounded-4xl`). Смена пресета = `components.json` `style` + `npx shadcn add <comp> --overwrite` из корня проекта (база не менялась, Maia доступна и на `radix`, и на `base`). Палитра/шрифт перекрыты в F2 (терракот + Manrope).
 
@@ -51,11 +51,11 @@ npx shadcn@latest add button card ...
 ## `cn` — `src/shared/lib/cn.ts`
 
 ```ts
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 ```
 

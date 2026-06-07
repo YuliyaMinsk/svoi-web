@@ -3,7 +3,7 @@ schema: spec-driven
 context: |
   Project: svoi-web - frontend for the "Svoi" product (a tool for validating demand for new services for micro-businesses; the initial segment is beauty professionals in Kazakhstan).
   Currently in demo phase (concierge MVP approach), will evolve into production product.
-  
+
   Tech stack:
   - Next.js 16 (App Router, src-dir, client-only for demo phase)
   - TypeScript strict mode
@@ -11,16 +11,17 @@ context: |
   - Tailwind CSS v4
   - framer-motion for animations
   - Manrope font via next/font
-  
+
   Architecture: Feature-Sliced Design (FSD - fsd.how)
   - src/app/ - Next.js routing only (layout, page, styles, route handlers)
   - src/pages/ - FSD pages layer (thin compositions)
   - src/features/ - product features (client-flow, master-view)
   - src/entities/ - business entities (master)
-  - src/shared/ - reusable ui/lib/config/assets
-  - Each FSD slice exposes public API via index.ts
-  - No cross-imports between features
-  
+  - src/shared/ - reusable ui/lib/config/model(types)/assets
+  - Each FSD slice/segment exposes public API via index.ts; import via @/<layer>/<segment>, not deep paths
+  - No cross-imports between features; lower layers never import from higher ones (shared < entities < features < pages)
+  - Create a slice/layer only when it holds real content (no empty placeholders - Steiger flags them)
+
   Testing:
   - Vitest + React Testing Library for unit tests (incl. hooks via renderHook), Playwright for e2e
   - Tests live in tests/ at repo root, mirroring src/ structure
@@ -28,17 +29,25 @@ context: |
   - UI/presentation (screens, layout, animations): no unit tests, verify against acceptance criteria; add tests only once a component stabilizes into a reusable piece
   - Playwright e2e: written after the UI exists (never test-first), key user-flows as regression; minimal during demo, expands later
   - Test behavior, not implementation details (use RTL role/label queries)
-  
+
   Development process:
   - OpenSpec drives feature development from F3 onwards (F0-F2 are bootstrap)
   - Cycle: propose -> review spec -> write failing tests from spec -> minimal code (green) -> refactor -> archive
   - One feature = one openspec change
-  
+
   Conventions:
   - Conventional commits (feat:, chore:, docs:, test:, refactor:, style:, fix:)
   - Russian product copy in UI (target audience is Russian-speaking masters in KZ)
   - English in code, comments, commits, specs
   - Color palette "Original": #FBF7F2 background, #C97B5A terracotta accent, #2D2A26 text
+
+  Code quality:
+  - Mechanical rules are owned by the tools (run `npm run check` = tsc + eslint + prettier + steiger). Do NOT restate lintable rules here.
+  - Human-judged rules the tools cannot enforce:
+    - Revealing names: full words, no cryptic abbreviations - the reader shouldn't have to decode an identifier.
+    - Pure functions: helpers/builders/selectors have no hidden side effects; keep effects at the edges (event handlers, React effects, route handlers).
+    - DRY on the third repeat: extract a shared abstraction when a pattern recurs a third time, not on the first duplication (premature abstraction is worse than a little duplication).
+    - One way to handle absence/errors per module: pick throw vs return null/undefined vs a result object and stay consistent; don't mix styles in the same unit.
 
 rules:
   proposal:

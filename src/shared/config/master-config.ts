@@ -1,4 +1,4 @@
-import type { MasterConfig } from '@/entities/master'
+import type { MasterConfig } from '@/shared/model';
 
 export const MASTER: MasterConfig = {
   name: 'Алина',
@@ -16,4 +16,4 @@ export const MASTER: MasterConfig = {
     whatsapp: '+77071234567',
     instagram: '@svoi_demo',
   },
-}
+};
