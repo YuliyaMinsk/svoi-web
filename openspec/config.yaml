@@ -1,7 +1,7 @@
 schema: spec-driven
 
 context: |
-  Project: svoi-web - frontend для продукта "Свои" (инструмент проверки спроса на новые услуги для микробизнеса, стартовый сегмент - бьюти-мастера в Казахстане).
+  Project: svoi-web - frontend for the "Svoi" product (a tool for validating demand for new services for micro-businesses; the initial segment is beauty professionals in Kazakhstan).
   Currently in demo phase (concierge MVP approach), will evolve into production product.
   
   Tech stack:

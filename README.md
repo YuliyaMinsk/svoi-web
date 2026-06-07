@@ -1,45 +1,81 @@
-# Свои
+# Svoi
 
-Инструмент проверки спроса на новые услуги для микробизнеса. Мастер 
-проверяет интерес клиентов к новой услуге через мягкую предзапись - 
-до вложений в обучение и материалы.
+A demand-validation tool for micro-businesses. A master tests client
+interest in a new service through soft pre-booking — before investing in
+training and materials.
 
-Стартовый сегмент: бьюти-мастера в Казахстане.
+Starting segment: beauty masters in Kazakhstan.
 
-## Статус
+## Status
 
-Demo (concierge MVP подход). Цель - показать механику 3-5 знакомым 
-мастерам и собрать обратную связь до полноценной разработки продукта.
+Demo (concierge MVP approach). The goal is to show the mechanics to 3–5
+familiar masters and gather feedback before full product development.
 
-## Стек
+## Stack
 
-- Next.js 15 (App Router) + TypeScript
+- Next.js 16 (App Router) + TypeScript
 - shadcn/ui + Tailwind CSS v4
 - framer-motion
-- FSD (feature-sliced design) архитектура
+- FSD (feature-sliced design) architecture
 - Vitest + React Testing Library + Playwright
-- OpenSpec для spec-driven development
+- OpenSpec for spec-driven development
 
-## Документация
+## Documentation
 
-- [PRD](./docs/prd/svoi-demo-prd-v0.3.md) - продуктовое описание demo
-- [Development plan](./docs/development-plan/svoi-demo-development-plan.md) - нарезка на фичи F0-F19
-- [Decisions](./docs/decisions/) - архитектурные решения (ADR-style)
+- [PRD](./docs/svoi-demo-prd.md) — product description of the demo
+- [Development plan](./docs/svoi-demo-dev-plan.md) — breakdown into features F0–F19
+- [Library guides](./docs/guides/) — project-specific digests for our stack
+- [OpenSpec changes](./openspec/changes/) — spec-driven change proposals & decisions
 
-## Запуск
+## Getting started
 
-​```bash
+```bash
 npm install
 npm run dev
-​```
+```
 
-Откроется на http://localhost:3000
+Opens at http://localhost:3000
 
-- `/` - клиентский опрос
-- `/master` - мокап стороны мастера
+- `/` — client survey
+- `/master` — master-side mockup
 
-## Контекст
+## Testing
 
-Проект разрабатывается в рамках курса rsschool по SaaS-разработке 
-(альтернативная идея вместо референсного проекта). Архитектура 
-выбрана с заделом на эволюцию demo в продакшен-продукт.
+Unit/component tests run on Vitest (jsdom); end-to-end tests run on Playwright.
+
+```bash
+# Unit & component tests (Vitest)
+npm run test:run     # run once and exit (CI-style)
+npm test             # watch mode
+npm run test:ui      # Vitest browser UI
+
+# End-to-end tests (Playwright)
+npm run test:e2e     # run all e2e specs
+npm run test:e2e:ui  # Playwright UI mode
+```
+
+Run everything in one go:
+
+```bash
+npm run test:run && npm run test:e2e
+```
+
+Useful filters:
+
+```bash
+npm run test:run -- tests/shared/lib/deeplinks.test.ts   # a single file
+npm run test:run -- -t "getWhatsAppLink"                 # by test name
+```
+
+Notes:
+- Vitest config lives in [vitest.config.ts](./vitest.config.ts); specs are under
+  `tests/**/*.test.{ts,tsx}`. The `tests/e2e/**` folder is excluded from Vitest.
+- Playwright specs live in `tests/e2e/**/*.spec.ts`. The Playwright config starts
+  the dev server automatically, so you don't need a separate `npm run dev`.
+- Type-check and lint separately with `npx tsc --noEmit` and `npm run lint`.
+
+## Context
+
+The project is developed as part of the rsschool SaaS-development course
+(an alternative idea instead of the reference project). The architecture
+is chosen with an eye toward evolving the demo into a production product.

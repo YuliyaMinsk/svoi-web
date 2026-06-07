@@ -37,6 +37,7 @@
 | F1 | **shared/ui (shadcn)** | `npx shadcn@latest init`, настройка `components.json` с алиасами на `@/shared/ui`, `@/shared/lib/cn`. Установка компонентов `button` и `card`. | F0 | shadcn заводит свою инфраструктуру (`components.json`, `lib/utils`) — настроить до того как писать UI. Алиасы под FSD задаются здесь. |
 | F2 | **shared/styles** | Подключение Manrope через `next/font/google`, CSS-переменные палитры Original в `globals.css` (`--background`, `--primary`, `--primary-hover`, `--radius`, `--shadow-card`), кастомизация `shared/ui/button.tsx` под палитру. | F1 | Дизайн-токены должны быть готовы до первого экрана. Кастомизация Button — отдельная задача от установки shadcn. |
 | F3 | **entities/master/types + shared/config** | Все TS типы в `entities/master/model/types.ts` (`MasterConfig`, `ServiceConfig`, `ContactsConfig`, `BotMessage`, `Step`), public API через `index.ts`. Константа `MASTER` в `shared/config/master-config.ts`. Утилиты `deeplinks.ts` и `dev-log.ts` в `shared/lib/`. | F0 (типы независимы от UI) | Фундамент. Контракт данных фиксируем рано — спека и тесты на форму данных без поведения. |
+| F3.5 | **tooling/code-quality** | Инструменты качества кода поверх дефолтного ESLint: Prettier (+`eslint-config-prettier`), строгие флаги `tsconfig` (`noUncheckedIndexedAccess`, `noUnusedLocals/Parameters`, `noImplicitOverride`), type-checked правила typescript-eslint (`no-floating-promises`, `no-misused-promises`), Steiger (линтер границ FSD). Агрегирующий скрипт `npm run check`. Нелинтуемые правила (имена, чистота функций) — тезисно в `openspec/config.yaml`. | F3 | Дефолтный линтер не ловит дубли, мёртвый код, нарушения границ FSD и плохие имена. Изолируем настройку качества от продуктовых фич; минимум под demo, тяжёлое (sonarjs/knip/хуки/CI) — после демо. |
 | F4 | **app routing + pages stubs** | `app/layout.tsx` (шрифт, metadata, импорт `globals.css`). Заглушки `src/pages/home/` и `src/pages/master/` с `HomePage` и `MasterPage` (просто `<div>placeholder</div>`). Реэкспорты в `app/page.tsx` и `app/master/page.tsx`. | F2, F3 | Проверка что FSD-структура работает с Next.js. Если реэкспорты сломаны — лучше узнать до того как написан UI. |
 | F5 | **entities/master/ui — MasterCard** | Компонент `MasterCard` в `entities/master/ui/`: круглое фото 80x80 через `next/image` + имя 18px weight 500 + город 14px muted. Props или дефолт из `MASTER`. | F2, F3 | Переиспользуемый кирпич — используется на нескольких экранах опроса. Изолируем отдельной фичей чтобы потом импортировать без дублирования. |
 | F6 | **features/client-flow/ui — ScreenWelcome (статика)** | Компонент `ScreenWelcome` без логики переходов: контейнер + `MasterCard` + текст приветствия и описания услуги из `MASTER.service` + две shadcn Button (primary + outline). `onClick` — заглушки `console.log`. Подключение в `HomePage`. | F5 | Первый вертикальный срез: FSD + shadcn + палитра + типография + entity-компонент дают рабочий экран. Без state-машины и анимаций — отделяем верстку от логики. |
@@ -81,6 +82,7 @@ F0 ─┬─→ F1 ──→ F2 ─┐
 ```
 
 **Параллельность:**
+- F3.5 (tooling/code-quality) — можно делать в любой момент после F3, продуктовые фичи не блокирует
 - F9-F13 не зависят друг от друга, делаются в любом порядке
 - F17 и F18 не зависят друг от друга, делаются в любом порядке
 - Клиентский flow (F4-F13) и мокап мастера (F14-F18) — две почти независимые ветки после F4
@@ -90,7 +92,7 @@ F0 ─┬─→ F1 ──→ F2 ─┐
 ## 3. Рекомендуемый порядок
 
 ```
-F0 → F1 → F2 → F3 → F4 → F5 → F6 → F7 → F8 → 
+F0 → F1 → F2 → F3 → F3.5 → F4 → F5 → F6 → F7 → F8 → 
 F9 → F10 → F11 → F12 → F13 → 
 F14 → F15 → F16 → F17 → F18 → 
 F19
@@ -99,6 +101,7 @@ F19
 **Обоснование:**
 
 - **F0–F3 строго по порядку** — инфраструктура зависимая, проскочить нельзя
+- **F3.5 — сразу после F3** (когда появился первый FSD-код для проверки границ), до основной массы UI. Не блокирует продуктовые фичи, но раньше = меньше техдолга и переформатирований потом
 - **F4–F8 строго по порядку** — путь "от пустой страницы до первого живого экрана с переходами"
 - **F9–F13 в любом порядке**, но в чеклисте по логике flow (Notify → Priority → Contact → Closure → ClosureEarly). Так можно тестировать happy path по мере добавления экранов
 - **F14–F18 после клиентского flow** — чтобы не переключаться между визуально разными интерфейсами. Когда работаешь над Telegram-стилизацией, голова в Telegram-эстетике
@@ -217,8 +220,37 @@ F19
 - [ ] Создать `src/shared/config/master-config.ts` с константой `MASTER`
 - [ ] Создать `src/shared/lib/deeplinks.ts` с функциями `getTelegramLink`, `getWhatsAppLink`, `getInstagramLink`
 - [ ] Создать `src/shared/lib/dev-log.ts` с функцией `devLog`
-- [ ] Положить заглушку фото в `public/master-photo.jpg` (stock или AI-сгенерированное)
+- [ ] Положить заглушку фото в `public/master-photo.png` (stock или AI-сгенерированное)
 - [ ] **Проверка:** `import { MASTER } from '@/shared/config/master-config'` работает, типы подсвечиваются
+
+### F3.5. tooling/code-quality
+
+**Стратегия:** инфраструктура, без продуктовых тестов. Проверка = инструменты проходят чисто по существующему коду (F0–F3). Минимальный набор под demo; тяжёлое — после демо (см. заметку ниже и раздел 7).
+
+**Зачем:** дефолтный ESLint (`next/core-web-vitals` + `next/typescript`) не ловит дублирование, мёртвый код / неиспользуемые экспорты, нарушения границ FSD (public API, cross-imports), сложность и качество имён. Закрываем дешёвым машинным минимумом; что машина проверить не может — короткими тезисами для ИИ.
+
+**Решения:**
+- Источник правды для механических правил — тулы (ESLint / TS / Prettier / Steiger), НЕ проза. В `config.yaml` пишем только нелинтуемое — иначе правила гниют и расходятся с реальностью.
+- Форматирование — **Prettier** (а не Biome): сохраняем next-правила ESLint, конфликты гасит `eslint-config-prettier`.
+- Границы FSD — **Steiger** (официальный линтер FSD от feature-sliced), а не ручная настройка `eslint-plugin-boundaries`.
+- Объём — только высоко-ROI минимум. `sonarjs` / `knip` / pre-commit-хуки / CI осознанно откладываем (demo живёт 2–3 недели).
+
+- [ ] **Prettier:** `npm i -D prettier eslint-config-prettier` (через `dependency-guard`). Минимальный `.prettierrc` + `.prettierignore` (`.next`, `node_modules`, `playwright-report`, `test-results`). Скрипты `"format": "prettier --write ."`, `"format:check": "prettier --check ."`
+- [ ] Подключить `eslint-config-prettier` **последним** в `eslint.config.mjs` (выключает стилевые правила, конфликтующие с Prettier)
+- [ ] **Строгие флаги** в `tsconfig.json`: `noUncheckedIndexedAccess`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitOverride`. Прогнать `tsc --noEmit`, починить всплывшее
+- [ ] **Type-checked правила** typescript-eslint: добавить в `eslint.config.mjs` type-aware блок (`parserOptions.projectService: true`, `tsconfigRootDir`) с `@typescript-eslint/no-floating-promises`, `no-misused-promises` (опц. `id-length` против однобуквенных имён). Проверить, нужен ли отдельный пакет `typescript-eslint` поверх того, что тянет `eslint-config-next`
+- [ ] **Steiger:** `npm i -D steiger @feature-sliced/steiger-plugin` (через `dependency-guard`), `steiger.config.ts` с FSD-пресетом, скрипт `"lint:fsd": "steiger src"`. Прогнать по `src/`, разобрать варнинги (`public-api`, `insignificant-slice` и т.п.)
+- [ ] **Агрегирующий скрипт:** `"check": "tsc --noEmit && eslint . && prettier --check . && steiger src"`
+- [ ] **Нелинтуемые правила** — тезисно в `openspec/config.yaml` блок `context`: раскрывающие имена без сокращений; чистые функции без скрытых сайд-эффектов; DRY (выносить на 3-м повторе, не раньше); единый подход к ошибкам/`null`. НЕ дублировать то, что уже ловят ESLint/TS
+- [ ] Прогнать `npm run format` один раз по всему репо (нормализация) — отдельным коммитом `style:`
+- [ ] Коммит: `chore: add code-quality tooling (prettier, strict tsconfig, type-checked eslint, steiger)`
+- [ ] **Проверка:** `npm run check` проходит чисто на текущем коде; намеренная ошибка (плавающий промис / cross-import между слайсами / неиспользуемая переменная) ловится соответствующим тулом
+
+**Откладываем на после демо** (включаем при переходе demo → продукт, см. раздел 7):
+- `eslint-plugin-sonarjs` — дубли (`no-identical-functions`, `no-duplicate-string`) + когнитивная сложность
+- `knip` — мёртвый код, неиспользуемые экспорты барелей и зависимости
+- `lefthook` + `lint-staged` — pre-commit (`check` на staged-файлах), чтобы и ручной коммит был чистым
+- GitHub Actions CI — `npm run check` + тесты на push/PR
 
 ### F4. app routing + pages stubs
 
@@ -426,5 +458,6 @@ F19
 2. **Unit-тесты** обязательны для любого нового модуля бизнес-логики: формы, валидации, интеграции с Telegram-ботом, бэкендом записей, очередью уведомлений.
 3. **UI-компоненты** покрываются тестами только когда дизайн стабилизировался и компонент стал переиспользуемым (попал в `shared/ui` или `entities/*/ui`). Одноразовые экраны фич — без unit-тестов.
 4. **Конфиги и данные** (как `messages-config`) — минимальный sanity-чек на форму, чтобы опечатки не доезжали до прода.
+5. **Инструменты качества кода** (отложенные из F3.5): `eslint-plugin-sonarjs` (дубли + когнитивная сложность), `knip` (мёртвый код / неиспользуемые экспорты и зависимости), `lefthook` + `lint-staged` (pre-commit), GitHub Actions CI (`npm run check` + тесты на push/PR).
 
 Эту секцию пересматриваем после первой реальной итерации с пользователями.

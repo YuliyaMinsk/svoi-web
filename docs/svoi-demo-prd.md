@@ -98,7 +98,7 @@ svoi-demo/
 │       │   ├── deeplinks.ts
 │       │   └── dev-log.ts
 │       ├── config/master-config.ts         # MASTER константа
-│       └── assets/master-photo.jpg
+│       └── assets/master-photo.png
 ├── public/
 ├── components.json                   # конфиг shadcn
 ├── tsconfig.json
@@ -201,7 +201,7 @@ import type { MasterConfig } from '@/entities/master'
 
 export const MASTER: MasterConfig = {
   name: 'Алина',
-  photoUrl: '/master-photo.jpg',
+  photoUrl: '/master-photo.png',
   city: 'Алматы',
   service: {
     name: 'Японский маникюр',
