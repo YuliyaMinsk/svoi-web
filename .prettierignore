@@ -15,3 +15,6 @@ coverage
 
 # Lockfile (npm-managed)
 package-lock.json
+
+# Python cache
+.mypy_cache

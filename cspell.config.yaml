@@ -1,0 +1,71 @@
+version: "0.2"
+language: en,ru
+dictionaries:
+  - ru_RU
+dictionaryDefinitions:
+  - name: ru_RU
+    path: ./cspell-ru-words.txt
+    description: Project Russian words
+ignorePaths:
+  - node_modules
+  - .next
+  - "*.lock"
+  - package-lock.json
+words:
+  # Tech terms
+  - oklch
+  - shadcn
+  - radix
+  - openspec
+  - steiger
+  - turbopack
+  - framer
+  - deeplinks
+  - cspell
+  - jsdom
+  - vitest
+  - playwright
+  - biome
+  - tsconfig
+  - eslint
+  - prettier
+  - noEmit
+  - tailwind
+  - nextjs
+  - manrope
+  # Russian words unknown to English spellchecker
+  - рендерится
+  - роутинге
+  - роутер
+  - роутинг
+  - заглушка
+  - заглушки
+  - заглушку
+  - заглушкой
+  - реэкспорт
+  - реэкспорты
+  - реэкспортов
+  - слайс
+  - слайсы
+  - слайсов
+  - чеклист
+  - онбординг
+  - девтулс
+  - мастер
+  - свои
+  - плейсхолдер
+  - плейсхолдеры
+  - плейсхолдером
+  - плейсхолдерами
+  - лейаут
+  - лейаутом
+  - лейауте
+  - алиас
+  - бандл
+  - бандлер
+  - токены
+  - токен
+  - пресет
+  - хук
+  - хуки
+  - хука

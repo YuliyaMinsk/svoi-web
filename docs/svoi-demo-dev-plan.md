@@ -126,7 +126,7 @@ F19
 - [x] Первый коммит: `chore: initial project setup with FSD structure` ✅ 2026-05-23
 - [x] **Проверка:** `npm run dev` запускает дефолтную страницу Next.js на http://localhost:3000 без ошибок ✅ 2026-05-23
 
-**Заметка об архитектурном решении:** `src/app/` остается папкой роутинга Next.js (layout.tsx, page.tsx, маршруты, styles/). Бизнес-логика и UI экранов живут в FSD-слоях `src/pages/`, `src/features/`, `src/entities/`, `src/shared/`. Заглушка `pages/` в корне не нужна - Next.js 13+ корректно работает с `src/app/` без этого.
+**Заметка об архитектурном решении (исправлено в F4):** Роутер Next.js перенесён в корневой `app/` (layout.tsx, page.tsx, master/page.tsx, favicon.ico) — как и было описано в PRD §4.2. `src/app/styles/` остаётся как FSD app-слой. В корне создан пустой `pages/README.md` — он занимает слот Pages Router, чтобы Next.js не воспринимал `src/pages/` (FSD-слой) как Pages Router. Без этой заглушки Next.js 16 при размещении роутера внутри `src/` сканирует `src/pages/` как Pages Router и конфликтует с App Router на тех же путях. Бизнес-логика и UI экранов живут в FSD-слоях `src/pages/`, `src/features/`, `src/entities/`, `src/shared/`.
 
 **Заметка про Next.js 16 (актуально для последующих фич):**
 
@@ -197,8 +197,8 @@ F19
 **Решения (обсуждены):**
 
 - Пресет переключён `radix-nova` → **`radix-maia`** (база `radix` не менялась; Maia доступна и на radix, и на base). Перегенерены `button.tsx`/`card.tsx` через `add --overwrite`. Фишка Maia — pill-кнопки `rounded-4xl`. Новых зависимостей не потянуло.
-- Радиус кнопки: побеждает **Maia pill** (`rounded-4xl`), а не PRD-шные 16px.
-- Цвета — ровно hex из таблицы PRD §8.1 (не oklch). Токены вне PRD (`secondary/accent/popover/destructive/chart/sidebar`) подогнаны под тёплую гамму.
+- Радиус кнопки: побеждает **Maia pill** (`rounded-4xl`), а не 16px из PRD.
+- Цвета — ровно hex из таблицы PRD §8.1, без конвертации. Токены вне PRD (`secondary/accent/popover/destructive/chart/sidebar`) подогнаны под тёплую гамму.
 - `.dark`-блок удалён — демо в одной светлой гамме.
 
 - [x] Подключить Manrope через `next/font/google` в `app/layout.tsx` (заменён Geist; `lang="ru"`) ✅ 2026-06-01
@@ -264,17 +264,22 @@ F19
 - `lefthook` + `lint-staged` — pre-commit (`check` на staged-файлах), чтобы и ручной коммит был чистым
 - GitHub Actions CI — `npm run check` + тесты на push/PR
 
-### F4. app routing + pages stubs
+### F4. app routing + pages stubs (Sonnet)
 
-- [ ] Настроить `app/layout.tsx` — Manrope, импорт `globals.css`, базовая HTML-обертка, metadata
-- [ ] Создать `src/pages/home/ui/HomePage.tsx` с заглушкой `<div>Welcome page placeholder</div>`
-- [ ] Создать `src/pages/home/index.ts` — public API
-- [ ] В `app/page.tsx` тонкий реэкспорт: `export { HomePage as default } from '@/pages/home'`
-- [ ] Аналогично создать `src/pages/master/` со заглушкой
-- [ ] В `app/master/page.tsx` реэкспорт
-- [ ] **Проверка:** `/` показывает заглушку Welcome, `/master` показывает Master page
+- [x] Роутер перенесён в корневой `app/` (layout.tsx, page.tsx, master/page.tsx, favicon.ico); `pages/README.md` — заглушка Pages Router ✅ 2026-06-08
+- [x] `app/layout.tsx` — Manrope + `--font-sans`, импорт `@/app/styles/globals.css`, metadata, `<html lang="ru">` ✅ 2026-06-08
+- [x] Создать `src/pages/home/ui/HomePage.tsx` с плейсхолдером «Welcome — home placeholder» ✅ 2026-06-08
+- [x] Создать `src/pages/home/index.ts` — public API ✅ 2026-06-08
+- [x] В `app/page.tsx` тонкий реэкспорт: `export { HomePage as default } from '@/pages/home'` ✅ 2026-06-08
+- [x] Создать `src/pages/master/ui/MasterPage.tsx` с плейсхолдером «Master placeholder» ✅ 2026-06-08
+- [x] Создать `src/pages/master/index.ts` — public API ✅ 2026-06-08
+- [x] В `app/master/page.tsx` реэкспорт: `export { MasterPage as default } from '@/pages/master'` ✅ 2026-06-08
+- [x] `npm run check` (tsc + eslint + prettier + steiger) — зелёный, без подавлений ✅ 2026-06-08
+- [x] **Проверка:** `/` показывает «Welcome — home placeholder», `/master` — «Master placeholder», оба под Manrope-лейаутом, без ошибок ✅ 2026-06-08
 
-### F5. entities/master/ui — MasterCard
+**Готово.** Отклонение: роутер возвращён в корневой `app/` (PRD §4.2) — `src/app/` при роутере внутри `src/` заставлял Next.js 16 трактовать `src/pages/` как Pages Router, вызывая коллизию маршрутов. Корневой `pages/README.md` — намеренная заглушка-защита.
+
+### F5. entities/master/ui — MasterCard (Sonnet)
 
 - [ ] Создать `src/entities/master/ui/MasterCard.tsx`
 - [ ] Круглое фото 80x80 через `next/image`
@@ -284,7 +289,7 @@ F19
 - [ ] Добавить экспорт в `src/entities/master/index.ts`
 - [ ] **Проверка:** вставить `<MasterCard />` на HomePage временно — рендерится круглое фото, имя, город
 
-### F6. features/client-flow/ui — ScreenWelcome (статика)
+### F6. features/client-flow/ui — ScreenWelcome (статика) (Sonnet)
 
 - [ ] Создать `src/features/client-flow/ui/ScreenWelcome.tsx`
 - [ ] Сверстать: контейнер + `MasterCard` + заголовок "Привет 💛 Я Алина, ваш мастер" + описание услуги из `MASTER.service` + две кнопки
@@ -295,7 +300,7 @@ F19
 - [ ] Заменить заглушку в HomePage на `<ScreenWelcome />`
 - [ ] **Проверка:** на мобильном размере DevTools видишь верный layout, на десктопе центрированный контейнер
 
-### F7. features/client-flow/model — useClientFlow
+### F7. features/client-flow/model — useClientFlow (Opus)
 
 **Стратегия:** **TDD**. State-машина — чистая логика, дёшево и полезно покрыть тестами.
 
@@ -311,7 +316,7 @@ F19
 - [ ] Экспортировать `useClientFlow` из `src/features/client-flow/index.ts`
 - [ ] **Проверка:** в тестовом компоненте хук работает — все переходы между шагами корректны
 
-### F8. features/client-flow/ui — ClientFlow container + animations
+### F8. features/client-flow/ui — ClientFlow container + animations (Opus)
 
 - [ ] Создать `src/features/client-flow/ui/ClientFlow.tsx`
 - [ ] Использовать `useClientFlow`, рендерить компоненты по `step`
@@ -323,7 +328,7 @@ F19
 - [ ] Добавить заглушки для остальных шагов: `<div>Next screen: {step}</div>`
 - [ ] **Проверка:** нажимаешь "Интересно" — плавно появляется заглушка с надписью "Next screen: notify"
 
-### F9. features/client-flow/ui — ScreenNotify
+### F9. features/client-flow/ui — ScreenNotify (Sonnet)
 
 - [ ] Создать `src/features/client-flow/ui/ScreenNotify.tsx`
 - [ ] Сверстать: заголовок "Здорово 🙏" + текст про уведомление + две кнопки
@@ -331,7 +336,7 @@ F19
 - [ ] "Да, напишите" → priority, "Просто посмотрю позже" → closure
 - [ ] **Проверка:** пройти welcome → notify, обе кнопки переходят на правильные заглушки
 
-### F10. features/client-flow/ui — ScreenPriority
+### F10. features/client-flow/ui — ScreenPriority (Sonnet)
 
 - [ ] Создать `src/features/client-flow/ui/ScreenPriority.tsx`
 - [ ] Сверстать согласно тексту из PRD 6.2
@@ -339,7 +344,7 @@ F19
 - [ ] "Да, хочу" → contact, "Пока не уверена" → closure
 - [ ] **Проверка:** пройти welcome → notify → priority, переходы корректны
 
-### F11. features/client-flow/ui — ScreenContact + deeplinks
+### F11. features/client-flow/ui — ScreenContact + deeplinks (Sonnet)
 
 **Стратегия:** Без unit-тестов на экран. Логика `deeplinks` уже покрыта в F3. Поведение `window.open` + переход — ручная проверка в браузере (на реальных устройствах — в F19).
 
@@ -349,7 +354,7 @@ F19
 - [ ] При клике: открыть ссылку через `window.open(link, '_blank')` + вызвать `onContinue()` → closure
 - [ ] **Проверка:** на десктопе клик по Telegram открывает t.me в новой вкладке, потом переходит на closure-заглушку
 
-### F12. features/client-flow/ui — ScreenClosure
+### F12. features/client-flow/ui — ScreenClosure (Sonnet)
 
 - [ ] Создать `src/features/client-flow/ui/ScreenClosure.tsx`
 - [ ] Сверстать: благодарность + опциональный шеринг (две кнопки) + дисклеймер про demo
@@ -357,14 +362,14 @@ F19
 - [ ] Кнопки шеринга — заглушки на demo (`console.log` достаточно)
 - [ ] **Проверка:** пройти полный happy path welcome → notify → priority → contact → closure — корректный финальный экран
 
-### F13. features/client-flow/ui — ScreenClosureEarly
+### F13. features/client-flow/ui — ScreenClosureEarly (Sonnet)
 
 - [ ] Создать `src/features/client-flow/ui/ScreenClosureEarly.tsx`
 - [ ] Сверстать: минималистичный экран с текстом "Спасибо, что заглянули 💛"
 - [ ] Подключить в `ClientFlow` для шага 'closureEarly'
 - [ ] **Проверка:** на Welcome нажать "Пока не интересно" — попасть на ClosureEarly с правильным текстом
 
-### F14. features/master-view/ui — TelegramChat shell
+### F14. features/master-view/ui — TelegramChat shell (Sonnet)
 
 - [ ] Создать `src/features/master-view/ui/TelegramChat.tsx`
 - [ ] Шапка: фиксированная сверху, белый фон, граница снизу, "Свои — Алина" + аватар 32x32 круглый
@@ -373,7 +378,7 @@ F19
 - [ ] Подключить в `MasterPage` вместо заглушки
 - [ ] **Проверка:** открываешь `/master` — видишь визуально узнаваемый Telegram-чат (пустой)
 
-### F15. features/master-view/model + ui/BotMessage
+### F15. features/master-view/model + ui/BotMessage (Opus)
 
 **Стратегия:** **Unit-sanity** на конфиг данных, UI компонента — без тестов (BDD + ручная проверка).
 
@@ -391,7 +396,7 @@ F19
 - [ ] Анимация появления через framer-motion из PRD 8.5
 - [ ] **Проверка:** рендерить статически 2-3 сообщения — выглядят как Telegram, анимация работает
 
-### F16. features/master-view/ui — sequential rendering
+### F16. features/master-view/ui — sequential rendering (Opus)
 
 **Стратегия:** **TDD** на таймерную логику через `vi.useFakeTimers()`. Скролл и DOM — ручная проверка.
 
@@ -408,7 +413,7 @@ F19
 - [ ] Cleanup всех таймеров в `useEffect` return
 - [ ] **Проверка:** открываешь `/master` — сообщения появляются с правильными задержками, чат прокручивается
 
-### F17. features/master-view/ui — ResponseCounter
+### F17. features/master-view/ui — ResponseCounter (Opus)
 
 - [ ] Создать `src/features/master-view/ui/ResponseCounter.tsx`
 - [ ] Layout: три цифры в ряд (14 / 4 / 8) с подписями (ответов / приоритет / уведомлений)
@@ -418,7 +423,7 @@ F19
 - [ ] В `BotMessage` условный рендер — если счетчик, показать `ResponseCounter` вместо обычного пузыря
 - [ ] **Проверка:** на нужной секунде в чате появляется блок со счетчиком, числа докручиваются 0 → 14/4/8
 
-### F18. features/master-view/ui — RecommendationCard
+### F18. features/master-view/ui — RecommendationCard (Sonnet)
 
 - [ ] Создать `src/features/master-view/ui/RecommendationCard.tsx`
 - [ ] Сверстать визуально выделенный блок с текстом рекомендации из PRD 7.3
@@ -427,7 +432,7 @@ F19
 - [ ] В `BotMessage` обработать тип `'recommendation'` — рендер `RecommendationCard` вместо обычного пузыря
 - [ ] **Проверка:** на нужной секунде появляется карточка рекомендации, читаема, выделяется визуально
 
-### F19. qa/final-pass
+### F19. qa/final-pass (Sonnet)
 
 **Стратегия:** ручная QA на устройствах + опциональный Playwright e2e на happy paths.
 
@@ -474,5 +479,3 @@ F19
 3. **UI-компоненты** покрываются тестами только когда дизайн стабилизировался и компонент стал переиспользуемым (попал в `shared/ui` или `entities/*/ui`). Одноразовые экраны фич — без unit-тестов.
 4. **Конфиги и данные** (как `messages-config`) — минимальный sanity-чек на форму, чтобы опечатки не доезжали до прода.
 5. **Инструменты качества кода** (отложенные из F3.5): `eslint-plugin-sonarjs` (дубли + когнитивная сложность), `knip` (мёртвый код / неиспользуемые экспорты и зависимости), `lefthook` + `lint-staged` (pre-commit), GitHub Actions CI (`npm run check` + тесты на push/PR).
-
-Эту секцию пересматриваем после первой реальной итерации с пользователями.
